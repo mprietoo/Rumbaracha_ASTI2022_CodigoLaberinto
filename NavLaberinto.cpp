@@ -1,8 +1,8 @@
-#include "NavCuadricula.h"
+#include "NavLaberinto.h"
 
-NavCuadricula::NavCuadricula(QTRSensors*  a, Motor* b, Motor* c )
+NavLaberinto::NavLaberinto(Motor* b, Motor* c )
 {
-    myQtr = a;
+    
     MisMotores[RIGHT] = b;
     MisMotores[LEFT] = c;
 
@@ -18,7 +18,7 @@ NavCuadricula::NavCuadricula(QTRSensors*  a, Motor* b, Motor* c )
     
 }
 
-void NavCuadricula::parar()
+void NavLaberinto::parar()
 {
     int i;
     for(i = 0; i< 2; i++)
@@ -28,7 +28,7 @@ void NavCuadricula::parar()
     }
 }
 
-void NavCuadricula::retroceder()
+void NavLaberinto::retroceder()
 {
     MisMotores[RIGHT]->setBack();
     MisMotores[LEFT]->setBack();
@@ -36,7 +36,7 @@ void NavCuadricula::retroceder()
     MisMotores[LEFT]->setPWM(200) ;
 }
 
-void NavCuadricula::avanzar()
+void NavLaberinto::avanzar()
 {
     MisMotores[RIGHT]->setFwd();
     MisMotores[LEFT]->setFwd();
@@ -44,7 +44,7 @@ void NavCuadricula::avanzar()
     MisMotores[LEFT]->setPWM(200) ;
 }
 
-void NavCuadricula::girar(bool sentido)
+void NavLaberinto::girar(bool sentido)
 {
     if(sentido == HORARIO)
     {
@@ -61,7 +61,7 @@ void NavCuadricula::girar(bool sentido)
     }
 }
 
-void NavCuadricula::giro90(bool sentido)
+void NavLaberinto::giro90(bool sentido)
 {
     if(sentido == HORARIO)
     {
@@ -81,44 +81,6 @@ void NavCuadricula::giro90(bool sentido)
     this->parar();
 }
 
-float NavCuadricula::getOutput()
-{
-    return output;
-    
-}
 
 
-void NavCuadricula::seguirLinea()
-{
-    float vel_a, vel_b;
 
-    vel_a = vel_base - output;
-    vel_b = vel_base + output;
-
-    MisMotores[RIGHT] ->setFwd();
-    MisMotores[LEFT]  ->setFwd();
-
-    vel_a > vel_max? MisMotores[RIGHT]->setPWM(vel_max) : MisMotores[RIGHT]-> setPWM(vel_a);
-    vel_b > vel_max? MisMotores[LEFT]->setPWM(vel_max) :MisMotores[LEFT]-> setPWM(vel_b);
-}
-
-bool NavCuadricula::sobreLineaHorizontal()
-{
-    int suma = 0;
-    int i;
-    for(i = 0; i < SENSORCOUNT; i++)
-    {
-        suma = suma + sensorValues[i];
-    }
-
-    return suma > THRESHOLD? true : false;
-}
-
-void NavCuadricula::compute()
-{
-    posicion = myQtr->readLineBlack(sensorValues);
-    myPID->Input = (posicion - center)/10;
-    myPID->Update();
-    output = myPID->Output;
-    
-}

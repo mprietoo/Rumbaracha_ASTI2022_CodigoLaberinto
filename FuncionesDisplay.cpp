@@ -7,7 +7,7 @@ extern volatile int final_;
 extern TofSensors MySensors;
 extern Adafruit_SSD1306 display;
 extern QTRSensors qtr;
-extern NavCuadricula misMotores;
+extern NavLaberinto misMotores;
 extern const unsigned char logo_reset [];
 extern int caso;
 
@@ -22,51 +22,7 @@ void displayThings()
             switch(Estado_display)
             {
                 case DISPLAY_MOSTRAR_ESTADO:
-                    switch (Estado)
-                    {
-                    case ESPERANDO:
-                        display.println("Estado: Esperando");
-                        break;
-
-                    case ORDEN_RECIBIDA:
-                        display.println("Estado: Orden recibida");
-                        break;
-                    
-                    case MOVIENDOSE:
-                        display.println("Estado: Ruta iniciada");
-                        break;
-                    default:
-                        break;
-                    }
-                    display.println("");
-                    if(Estado == MOVIENDOSE)
-                    {
-                        switch(caso)
-                        {
-                            case C_RECTO: 
-                                display.println("Todo recto");
-                                break;
-
-                            case C_RECTOI: 
-                                display.println("Recto y a la izquierda");
-                                break;
-
-                            case C_RECTOD: 
-                                display.println("Recto y a la derecha");
-                                break;
-
-                            case C_ZIGZAG: 
-                                display.println("zigzag");
-                                break;
-
-                            case C_ERROR:
-                                display.println("ERROR");
-                                break;
-                         }
-                    }
-
-                break;
-
+               
                 case DISPLAY_MOSTRAR_TOF:
                     display.println("Sensores laser: ");
                     display.println("");
@@ -107,21 +63,7 @@ void displayThings()
                 display.display();
                 break;
 
-                case DISPLAY_MOSTRAR_LINEA:
-                    uint8_t SensorCount = SENSORCOUNT;
-                    uint16_t sensorValues[SensorCount];
-                    uint16_t position = qtr.readLineBlack(sensorValues);
-                    for (uint8_t i = 0; i < SensorCount; i++)
-                    {
-                        display.print(i);
-                        display.print(": ");
-                        display.print(sensorValues[i]);
-                        display.print('\n');
-                    }
-                    display.println(position);
-                    
-
-                break;
+                
 
             }
         }display.display();

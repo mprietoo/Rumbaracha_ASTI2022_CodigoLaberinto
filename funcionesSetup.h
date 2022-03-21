@@ -5,7 +5,6 @@
 #include "Config.h"
 
 void configDisplay();
-void configESPUI();
 
 #endif
 

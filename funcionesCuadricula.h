@@ -12,5 +12,3 @@
 #define H_MAX 13
 #define H_MIN 7
 
-//Funcion que determina en que caso de la cuadricula estamos
-int determinar_caso(int ,int);

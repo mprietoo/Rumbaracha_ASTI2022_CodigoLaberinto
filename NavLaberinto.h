@@ -1,25 +1,18 @@
-#ifndef _NAVCUADRICULA_H_
-#define _NAVCUADRICULA_H_
+#ifndef _NAVLABERINTO_H_
+#define _NAVLABERINTO_H_
 
 #include "Config.h"
-#include <QTRSensors.h>
 #include "Motor.h"
 
 #define HORARIO 1
 #define ANTIHORARIO 0
 
-extern const uint16_t THRESHOLD;
 extern const float center;
 
 //Clase que gestiona la navegacion en la prueba de la cuadricula
-class NavCuadricula
+class NavLaberinto
 {
     private:
-        //Sensor siguelineas 
-        QTRSensors* myQtr;
-        uint16_t posicion;
-        uint16_t sensorValues[6];
-        float output;
 
         //Array con los dos motores a controlar
         Motor* MisMotores[2];
@@ -36,7 +29,7 @@ class NavCuadricula
     public:
 
         //Constructor
-        NavCuadricula(QTRSensors*, Motor*, Motor*);    
+        NavLaberinto(Motor*, Motor*);    
         void setVelBase(uint8_t a){vel_base = a;};
         void setPIDparam(PID::PIDParameters<float> a)
             {
@@ -47,9 +40,7 @@ class NavCuadricula
         void avanzar();
         void girar(bool);
         void retroceder();
-        void seguirLinea();
-        bool sobreLineaHorizontal();
-        void compute();
+        
         float getOutput();
         float getPos(){return myPID->Input;};
         float getKp(){return myPID->GetKp();};

@@ -2,15 +2,11 @@
 #define CONFIG_
 
 #include "Pinout.h"
-#include <DNSServer.h>
-#include <ESPUI.h>
 #include <SPI.h>
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 #include "TofSensors.h"
-#include <Adafruit_PWMServoDriver.h>
-#include "ESPUI_callbacks.h"
 #include "funcionesSetup.h"
 #include "PCF8575.h"
 #include <PIDController.hpp>
