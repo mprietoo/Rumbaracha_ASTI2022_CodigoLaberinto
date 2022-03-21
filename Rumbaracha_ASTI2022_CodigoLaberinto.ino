@@ -112,6 +112,25 @@ Wire.setClock(800000);
 
 //------------------------- EL codigo  -------------------------------------------
 
+// VARIABLES
+//constantes:
+#define t_rotacion_dech 800
+#define t_rotacion_izq 600
+#define t_atras 600
+#define t_parar 100
+
+float vel_dech;
+float vel_izq;
+int error;
+int estado=0; // no sé qué es
+
+
+int distanciaF;
+int distanciaD;
+int distanciaI;
+int contador = 0; // solo para el inicio
+
+
 // El core 0 lo usaremos para manejar la movida web
 //  y alguna tarea secundaria
 void TaskCORE0code(void *pvParameters)
@@ -121,9 +140,99 @@ void TaskCORE0code(void *pvParameters)
     uint8_t numero_de_veces_giradas = 0;
     Serial.println("Core 0 activo");
     display.println("Core 0 activo");
-    // Bucle infinito
+    // Bucle infinito // AQUÍ PROGRAMO YO
     for (;;)
     {
+        // solo para entrar en el laberinto
+        if(contador == 0){
+            misMotores.avanzar();
+            delay(2000); // que alguien cambie esta basura
+        }
+
+        // leo sensores
+        distanciaF = MySensors.getDistance(FRONT);
+        distanciaD = MySensors.getDistance(RIGHT);
+        distanciaI = MySensors.getDistance(LEFT);
+
+        // casuística:
+
+        // recto
+        misMotores.mantener_carril(); // hace el pid
+        
+        if ((distanciaF < 5)||(distanciaD < 5)||(distanciaI < 5)) {
+            misMotores.parar();
+            // Parar();
+            // delay(t_parar);
+            misMotores.retroceder();
+            // Atras();
+            // delay(t_atras);
+        }
+
+
+        if(estado){  //miro la pared derecha
+        //giros
+        if (distanciaD > 35) {  //hueco a la derecha abandono via
+            misMotores.mantener_carril(); // hace el pid
+            // Adelante(128, 128);
+            // delay(t_parar);
+            estado=!estado;
+        }
+    
+        else if (distanciaF < 15) {   //cerca de la pared
+            if (distanciaI > 35){
+                misMotores.giro90(HORARIO); // gira a la izq // ¿HORARIO?
+                    // Izquierda();
+                    // delay(t_rotacion_izq);
+            }
+            else{
+                misMotores.parar();
+                // Parar();
+                // delay(t_parar);
+                misMotores.retroceder();
+                // Atras();
+                // delay(t_atras);
+            }
+        }
+
+        else{
+            misMotores.mantener_carril();
+            // Adelante(vel_dech, vel_izq);
+        }
+        }
+
+        if(!estado){  //miro la pared izquierda
+        //giros
+        if (distanciaI > 35) {  //hueco a la izquierda abandono via
+            misMotores.mantener_carril();
+            // Adelante(128, 128);
+            // delay(t_parar);
+            estado=!estado;
+        }
+            
+        else if (distanciaF < 15) {  //cerca de la pared
+            if (distanciaD > 35){
+                    misMotores.giro90(ANTIHORARIO); // ANTIHORARIO???
+                    // Derecha();
+                    // delay(t_rotacion_dech);
+            }
+            else{
+                misMotores.parar();
+                // Parar();
+                // delay(t_parar);
+                misMotores.retroceder()
+                // Atras();
+                // delay(t_atras);
+            }
+        }
+
+        else{
+            misMotores.mantener_carril();
+            // Adelante(vel_dech, vel_izq);
+        }
+    
+
+       
+
     }
 }
 
@@ -132,6 +241,7 @@ void TaskCORE1code(void *pvParameters)
 {
     Serial.println("Core 1 activo");
     display.println("Core 1 activo");
+    // Bucle infinito // AQUÍ PROGRAMO YO (wifi)
     for (;;)
     {
         

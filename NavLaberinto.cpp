@@ -77,7 +77,7 @@ void NavLaberinto::giro90(bool sentido)
         MisMotores[LEFT]->setPWM(200) ;
     }
 
-    delay(MILLIS_GIRO90);
+    delay(MILLIS_GIRO90); // puede que haya que poner uno en cada dirección
     this->parar();
 }
 
