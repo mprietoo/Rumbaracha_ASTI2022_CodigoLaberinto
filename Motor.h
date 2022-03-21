@@ -1,9 +1,7 @@
 #ifndef Motor_h
 #define Motor_h
 
-#include "Pinout.h"
-#include "Config.h"
-
+#include "Config.h""
 
 class Motor
 {

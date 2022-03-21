@@ -3,6 +3,7 @@
 
 
 #include "Motor.h"
+#include <Arduino.h>
 
 
 // accepts three ints as parameters: 
@@ -10,6 +11,7 @@
 //    and the pin number of the pwm pin
 Motor::Motor(int dir1, int dir2, int pwm, int pwm_ch, int pwm_frec, int pwm_res)
 {
+	
 	_dir1 = dir1;
 	_dir2 = dir2;
 	_pwm = pwm;
