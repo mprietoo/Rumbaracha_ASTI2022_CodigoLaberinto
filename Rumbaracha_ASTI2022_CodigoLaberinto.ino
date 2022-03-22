@@ -156,82 +156,73 @@ void TaskCORE0code(void *pvParameters)
 
         // casuística:
 
-        // recto
-        misMotores.mantener_carril(); // hace el pid
+        // Código preparado para medir el laberinto de la semifinal exclusivamente
+        // para cualquier otra cosa será una porquería
         
-        if ((distanciaF < 5)||(distanciaD < 5)||(distanciaI < 5)) {
+        // Error o callejón sin salida, preocupante
+        if ((distanciaF < 50)||(distanciaD < 50)||(distanciaI < 50)) {
             misMotores.parar();
             // Parar();
-            // delay(t_parar);
             misMotores.retroceder();
             // Atras();
-            // delay(t_atras);
         }
 
 
         if(estado){  //miro la pared derecha
-        //giros
-        if (distanciaD > 35) {  //hueco a la derecha abandono via
-            misMotores.mantener_carril(); // hace el pid
-            // Adelante(128, 128);
-            // delay(t_parar);
-            estado=!estado;
-        }
-    
-        else if (distanciaF < 15) {   //cerca de la pared
-            if (distanciaI > 35){
-                misMotores.giro90(HORARIO); // gira a la izq // ¿HORARIO?
-                    // Izquierda();
-                    // delay(t_rotacion_izq);
+            //giros
+            if (distanciaD > 300) {  //hueco a la derecha abandono via
+                //Debo avanzar y girar a la derecha y avanzar
+                misMotores.avanzar();
+                misMotores.giro90(HORARIO);
+                estado=!estado; // Empiezo a mirar la pared de la izquierda para una referencia mejor
             }
+        
+            else if (distanciaF < 150) {   //cerca de la pared
+                if (distanciaI > 300){
+                    misMotores.giro90(ANTIHORARIO); // gira a la izq 
+                        // Izquierda();
+                }
+                else{
+                    misMotores.parar();
+                    // Parar();
+                    misMotores.retroceder();
+                    // Atras();
+                }
+            }
+
             else{
-                misMotores.parar();
-                // Parar();
-                // delay(t_parar);
-                misMotores.retroceder();
-                // Atras();
-                // delay(t_atras);
+                //No he detectado ningún obstáculo así que ejecuto PID
+                misMotores.mantener_carril(distanciaD);
             }
         }
 
-        else{
-            misMotores.mantener_carril();
-            // Adelante(vel_dech, vel_izq);
-        }
-        }
-
-        if(!estado){  //miro la pared izquierda
-        //giros
-        if (distanciaI > 35) {  //hueco a la izquierda abandono via
-            misMotores.mantener_carril();
-            // Adelante(128, 128);
-            // delay(t_parar);
-            estado=!estado;
-        }
-            
-        else if (distanciaF < 15) {  //cerca de la pared
-            if (distanciaD > 35){
-                    misMotores.giro90(ANTIHORARIO); // ANTIHORARIO???
-                    // Derecha();
-                    // delay(t_rotacion_dech);
+        else if(!estado){  //miro la pared izquierda
+            //giros
+            if (distanciaI > 300) {  //hueco a la izquierda abandono via
+                //Debo avanzar y girar a la izquierda y avanzar
+                misMotores.avanzar();
+                misMotores.giro90(ANTIHORARIO);
+                estado=!estado; // Vuelvo a mirar a la derecha
             }
+                
+            else if (distanciaF < 150) {  //cerca de la pared
+                if (distanciaD > 350){
+                        misMotores.giro90(HORARIO); // HORARIO???
+                        // Derecha();
+                }
+                else{
+                    misMotores.parar();
+                    // Parar();
+                    misMotores.retroceder();
+                    // Atras();
+                }
+            }
+
             else{
-                misMotores.parar();
-                // Parar();
-                // delay(t_parar);
-                misMotores.retroceder()
-                // Atras();
-                // delay(t_atras);
+                //No he detectado ningún obstáculo así que ejecuto PID
+                misMotores.mantener_carril(distanciaI);
             }
         }
-
-        else{
-            misMotores.mantener_carril();
-            // Adelante(vel_dech, vel_izq);
-        }
-    
-
-       
 
     }
 }
@@ -245,7 +236,7 @@ void TaskCORE1code(void *pvParameters)
     for (;;)
     {
         
-        
+        misMotores.compute();
         //vTaskDelay(10 / portTICK_PERIOD_MS);
     }
 }

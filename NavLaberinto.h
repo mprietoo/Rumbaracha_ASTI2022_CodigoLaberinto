@@ -7,12 +7,12 @@
 #define HORARIO 1
 #define ANTIHORARIO 0
 
-extern const float center;
-
 //Clase que gestiona la navegacion en la prueba de la cuadricula
 class NavLaberinto
 {
     private:
+        int distancia;
+        float output;
 
         //Array con los dos motores a controlar
         Motor* MisMotores[2];
@@ -46,7 +46,12 @@ class NavLaberinto
         float getKp(){return myPID->GetKp();};
         float getKd(){return myPID->GetKd();};
         float getKi(){return myPID->GetKi();};
+        
+        void compute();
         void giro90(bool);
+        void mantener_carril(int);
+
+
 };
 
 #endif

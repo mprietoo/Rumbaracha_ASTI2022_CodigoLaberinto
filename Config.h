@@ -13,8 +13,6 @@
 #include <QTRSensors.h>
 
 
-
-
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 64 // OLED display height, in pixels
 #define OLED_RESET     4 // Reset pin # (or -1 if sharing Arduino reset pin)
@@ -36,12 +34,15 @@
 #define PWM_CH_D 0 //canal para el pwm del motor derecho 
 #define PWM_CH_I 1 //canal para el pwm del motor izquierdo
 
-//Movidas del sensor siguelineas
-#define SENSORCOUNT 6
-const uint16_t THRESHOLD = 4500;
-const float center = 2500.0;
+// Variables PID
+const int distanciaOPT = 150;
 
+// Variables para giros
 #define MILLIS_GIRO90 900
+#define MILLIS_PARAR 900
+#define MILLIS_RETRO 900
+#define MILLIS_AVANZ 900
+
 #define MILLIS_LLEGADA_A_DESTINO 900
 
 
