@@ -119,11 +119,8 @@ Wire.setClock(800000);
 #define t_atras 600
 #define t_parar 100
 
-float vel_dech;
-float vel_izq;
-int error;
-int estado=0; // no sé qué es
 
+int estado=0; // no sé qué es
 
 int distanciaF;
 int distanciaD;
@@ -167,7 +164,6 @@ void TaskCORE0code(void *pvParameters)
             // Atras();
         }
 
-
         if(estado){  //miro la pared derecha
             //giros
             if (distanciaD > 300) {  //hueco a la derecha abandono via
@@ -176,12 +172,8 @@ void TaskCORE0code(void *pvParameters)
                 misMotores.giro90(HORARIO);
                 estado=!estado; // Empiezo a mirar la pared de la izquierda para una referencia mejor
             }
-        
             else if (distanciaF < 150) {   //cerca de la pared
-                if (distanciaI > 300){
-                    misMotores.giro90(ANTIHORARIO); // gira a la izq 
-                        // Izquierda();
-                }
+                if (distanciaI > 300) misMotores.giro90(ANTIHORARIO); // gira a la izq 
                 else{
                     misMotores.parar();
                     // Parar();
@@ -189,11 +181,7 @@ void TaskCORE0code(void *pvParameters)
                     // Atras();
                 }
             }
-
-            else{
-                //No he detectado ningún obstáculo así que ejecuto PID
-                misMotores.mantener_carril(distanciaD);
-            }
+            else misMotores.mantener_carril(distanciaD); //No he detectado ningún obstáculo así que ejecuto PID
         }
 
         else if(!estado){  //miro la pared izquierda
@@ -203,13 +191,9 @@ void TaskCORE0code(void *pvParameters)
                 misMotores.avanzar();
                 misMotores.giro90(ANTIHORARIO);
                 estado=!estado; // Vuelvo a mirar a la derecha
-            }
-                
+            } 
             else if (distanciaF < 150) {  //cerca de la pared
-                if (distanciaD > 350){
-                        misMotores.giro90(HORARIO); // HORARIO???
-                        // Derecha();
-                }
+                if (distanciaD > 350) misMotores.giro90(HORARIO); // Derecha();
                 else{
                     misMotores.parar();
                     // Parar();
@@ -217,11 +201,7 @@ void TaskCORE0code(void *pvParameters)
                     // Atras();
                 }
             }
-
-            else{
-                //No he detectado ningún obstáculo así que ejecuto PID
-                misMotores.mantener_carril(distanciaI);
-            }
+            else misMotores.mantener_carril(distanciaI); //No he detectado ningún obstáculo así que ejecuto PID
         }
 
     }
@@ -235,7 +215,6 @@ void TaskCORE1code(void *pvParameters)
     // Bucle infinito // AQUÍ PROGRAMO YO (wifi)
     for (;;)
     {
-        
         misMotores.compute();
         //vTaskDelay(10 / portTICK_PERIOD_MS);
     }
@@ -244,4 +223,5 @@ void TaskCORE1code(void *pvParameters)
 // No usado
 void loop(void)
 {
+    
 }
