@@ -10,10 +10,10 @@ NavLaberinto::NavLaberinto(Motor* b, Motor* c )
     parametros_PID = aux;
     myPID = new PID::PIDController<float>(aux);
 
-    vel_max = 255;
-    vel_base = 100;
+    vel_max = 100;
+    vel_base = 50;
     myPID->Setpoint = 0.0;
-    myPID->SetOutputLimits(-255, 255);
+    myPID->SetOutputLimits(-50, 50);
     myPID->TurnOn();
     
 }
@@ -27,30 +27,33 @@ void NavLaberinto::parar()
         MisMotores[i]->setStop();
     }
 
-    delay(MILLIS_PARAR); // puede que haya que poner uno en cada dirección
-    this->parar();
+    vTaskDelay(MILLIS_PARAR / portTICK_PERIOD_MS);
+    // puede que haya que poner uno en cada dirección
+    
 }
 
 void NavLaberinto::retroceder()
 {
     MisMotores[RIGHT]->setBack();
     MisMotores[LEFT]->setBack();
-    MisMotores[RIGHT]->setPWM(200);
-    MisMotores[LEFT]->setPWM(200) ;
+    MisMotores[RIGHT]->setPWM(vel_base);
+    MisMotores[LEFT]->setPWM(vel_base) ;
 
-    delay(MILLIS_RETRO); // puede que haya que poner uno en cada dirección
-    this->parar();
+    vTaskDelay(MILLIS_RETRO / portTICK_PERIOD_MS);
+    // puede que haya que poner uno en cada dirección
+    
 }
 
 void NavLaberinto::avanzar()
 {
     MisMotores[RIGHT]->setFwd();
     MisMotores[LEFT]->setFwd();
-    MisMotores[RIGHT]->setPWM(200);
-    MisMotores[LEFT]->setPWM(200) ;
+    MisMotores[RIGHT]->setPWM(vel_base);
+    MisMotores[LEFT]->setPWM(vel_base) ;
 
-    delay(MILLIS_AVANZ); // puede que haya que poner uno en cada dirección
-    this->parar();
+    vTaskDelay(MILLIS_AVANZ / portTICK_PERIOD_MS);
+      // puede que haya que poner uno en cada dirección
+    
 }
 
 void NavLaberinto::girar(bool sentido)
@@ -59,14 +62,14 @@ void NavLaberinto::girar(bool sentido)
     {
         MisMotores[RIGHT]->setFwd();
         MisMotores[LEFT]->setBack();
-        MisMotores[RIGHT]->setPWM(200);
-        MisMotores[LEFT]->setPWM(200) ;
+        MisMotores[RIGHT]->setPWM(vel_base);
+        MisMotores[LEFT]->setPWM(vel_base) ;
     }else
     {
         MisMotores[RIGHT]->setBack();
         MisMotores[LEFT]->setFwd();
-        MisMotores[RIGHT]->setPWM(200);
-        MisMotores[LEFT]->setPWM(200) ;
+        MisMotores[RIGHT]->setPWM(vel_base);
+        MisMotores[LEFT]->setPWM(vel_base) ;
     }
 }
 
@@ -76,21 +79,21 @@ void NavLaberinto::giro90(bool sentido)
     {
         MisMotores[RIGHT]->setFwd();
         MisMotores[LEFT]->setBack();
-        MisMotores[RIGHT]->setPWM(200);
-        MisMotores[LEFT]->setPWM(200) ;
+        MisMotores[RIGHT]->setPWM(vel_base);
+        MisMotores[LEFT]->setPWM(vel_base) ;
     }else
     {
         MisMotores[RIGHT]->setBack();
         MisMotores[LEFT]->setFwd();
-        MisMotores[RIGHT]->setPWM(200);
-        MisMotores[LEFT]->setPWM(200) ;
+        MisMotores[RIGHT]->setPWM(vel_base);
+        MisMotores[LEFT]->setPWM(vel_base) ;
     }
 
-    delay(MILLIS_GIRO90); // puede que haya que poner uno en cada dirección
-    this->parar();
+    vTaskDelay(MILLIS_GIRO90 / portTICK_PERIOD_MS); // puede que haya que poner uno en cada dirección
+    
 }
 
-void NavLaberinto::mantener_carril(int distancia)
+void NavLaberinto::seguirpared()
 {
     float vel_a, vel_b;
 
@@ -106,9 +109,10 @@ void NavLaberinto::mantener_carril(int distancia)
 
 }
 
-void NavLaberinto::compute()
+void NavLaberinto::compute(int ndistancia)
 {
-    myPID->Input = (distancia - distanciaOPT)/10;
+    distancia = ndistancia;
+    myPID->Input = (distancia - distanciaOPT);
     myPID->Update();
     output = myPID->Output;
     

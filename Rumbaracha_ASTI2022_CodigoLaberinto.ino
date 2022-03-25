@@ -18,6 +18,20 @@ f1 -> Arduino: Verify (compilar)
 #include "NavLaberinto.h"
 #include "Logo.h"
 
+//------------------------- EL codigo  -------------------------------------------
+
+// VARIABLES
+
+int estado=1; // no sé qué es
+
+int distanciaF=500;
+int distanciaD=200;
+int distanciaI=200;
+int distanciaC;
+int contador = 0; // solo para el inicio
+
+//#include "FuncionesDisplay.h"
+
 
  //Objeto global para el extensor de pines
 PCF8575 pinExtensor =  PCF8575(0x20);
@@ -110,22 +124,7 @@ Wire.setClock(800000);
     );
 }
 
-//------------------------- EL codigo  -------------------------------------------
 
-// VARIABLES
-//constantes:
-#define t_rotacion_dech 800
-#define t_rotacion_izq 600
-#define t_atras 600
-#define t_parar 100
-
-
-int estado=0; // no sé qué es
-
-int distanciaF;
-int distanciaD;
-int distanciaI;
-int contador = 0; // solo para el inicio
 
 
 // El core 0 lo usaremos para manejar la movida web
@@ -137,19 +136,32 @@ void TaskCORE0code(void *pvParameters)
     uint8_t numero_de_veces_giradas = 0;
     Serial.println("Core 0 activo");
     display.println("Core 0 activo");
-    // Bucle infinito // AQUÍ PROGRAMO YO
+    // Bucle infinito 
+    // AQUÍ PROGRAMO YO
     for (;;)
     {
+
+
+        /*
         // solo para entrar en el laberinto
         if(contador == 0){
             misMotores.avanzar();
-            delay(2000); // que alguien cambie esta basura
+            //delay(2000); // que alguien cambie esta basura
         }
-
+        */
         // leo sensores
-        distanciaF = MySensors.getDistance(FRONT);
-        distanciaD = MySensors.getDistance(RIGHT);
-        distanciaI = MySensors.getDistance(LEFT);
+        if(MySensors.getDistance(FRONT)!=-1) distanciaF = MySensors.getDistance(FRONT);
+        if(MySensors.getDistance(RIGHT)!=-1) distanciaD = MySensors.getDistance(RIGHT);
+        if(MySensors.getDistance(LEFT)!=-1) distanciaI = MySensors.getDistance(LEFT);
+
+        /*
+        Serial.print("DistanciaF:");
+        Serial.println(distanciaF);
+        Serial.print("DistanciaD:");
+        Serial.println(distanciaD);
+        Serial.print("DistanciaI:");
+        Serial.println(distanciaI);
+        */
 
         // casuística:
 
@@ -164,16 +176,22 @@ void TaskCORE0code(void *pvParameters)
             // Atras();
         }
 
-        if(estado){  //miro la pared derecha
+        if(estado){  //miro la pared derecha 
+            distanciaC=distanciaD;
+            //Serial.println("Miro a la derecha");
             //giros
-            if (distanciaD > 300) {  //hueco a la derecha abandono via
+            // el dia de la tragedia
+            if (distanciaD > 400) {  //hueco a la derecha abandono via
+                //Serial.print("HUECO DERECHA:");
+                //Serial.println(distanciaD);
                 //Debo avanzar y girar a la derecha y avanzar
                 misMotores.avanzar();
                 misMotores.giro90(HORARIO);
                 estado=!estado; // Empiezo a mirar la pared de la izquierda para una referencia mejor
             }
+            // fin del dia de la tragedia
             else if (distanciaF < 150) {   //cerca de la pared
-                if (distanciaI > 300) misMotores.giro90(ANTIHORARIO); // gira a la izq 
+                if (distanciaI > 400) misMotores.giro90(ANTIHORARIO); // gira a la izq 
                 else{
                     misMotores.parar();
                     // Parar();
@@ -181,19 +199,23 @@ void TaskCORE0code(void *pvParameters)
                     // Atras();
                 }
             }
-            else misMotores.mantener_carril(distanciaD); //No he detectado ningún obstáculo así que ejecuto PID
+            else misMotores.seguirpared(); //No he detectado ningún obstáculo así que ejecuto PID
         }
 
         else if(!estado){  //miro la pared izquierda
+            distanciaC=distanciaI;
+            //Serial.println("Miro a la derecha");
             //giros
-            if (distanciaI > 300) {  //hueco a la izquierda abandono via
+            if (distanciaI > 400) {  //hueco a la izquierda abandono via
+                //Serial.print("HUECO IZQUIERDA:");
+                //Serial.println(distanciaI);
                 //Debo avanzar y girar a la izquierda y avanzar
                 misMotores.avanzar();
                 misMotores.giro90(ANTIHORARIO);
                 estado=!estado; // Vuelvo a mirar a la derecha
             } 
             else if (distanciaF < 150) {  //cerca de la pared
-                if (distanciaD > 350) misMotores.giro90(HORARIO); // Derecha();
+                if (distanciaD > 400) misMotores.giro90(HORARIO); // Derecha();
                 else{
                     misMotores.parar();
                     // Parar();
@@ -201,7 +223,7 @@ void TaskCORE0code(void *pvParameters)
                     // Atras();
                 }
             }
-            else misMotores.mantener_carril(distanciaI); //No he detectado ningún obstáculo así que ejecuto PID
+            else misMotores.seguirpared(); //No he detectado ningún obstáculo así que ejecuto PID
         }
 
     }
@@ -215,13 +237,14 @@ void TaskCORE1code(void *pvParameters)
     // Bucle infinito // AQUÍ PROGRAMO YO (wifi)
     for (;;)
     {
-        misMotores.compute();
-        //vTaskDelay(10 / portTICK_PERIOD_MS);
+        //displayThings();
+        misMotores.compute(distanciaC);
+        vTaskDelay(10 / portTICK_PERIOD_MS);
     }
 }
 
 // No usado
 void loop(void)
 {
-    
+   
 }

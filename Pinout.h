@@ -5,9 +5,9 @@
 // --------------- Pines -----------------
 
 //XShut de los sensores tof
-#define pin_xshut_front P3
-#define pin_xshut_right P2
-#define pin_xshut_left P1
+#define pin_xshut_front P2 //P3
+#define pin_xshut_right P1 //P2
+#define pin_xshut_left P3  //P1
 
 //Encoder derecho
 #define PIN_ENCODER_D_CA 26 //Pin encoder derecha canal A

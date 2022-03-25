@@ -47,9 +47,9 @@ class NavLaberinto
         float getKd(){return myPID->GetKd();};
         float getKi(){return myPID->GetKi();};
         
-        void compute();
+        void compute(int);
         void giro90(bool);
-        void mantener_carril(int);
+        void seguirpared();
 
 
 };
