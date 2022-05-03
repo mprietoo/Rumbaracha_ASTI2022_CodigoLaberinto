@@ -22,11 +22,16 @@
 #define TOF_ADRESS_LEFT 0x31
 #define TOF_ADRESS_RIGHT 0x32
 
-#define FRONT 2
 #define RIGHT 0
 #define LEFT 1
+#define FRONT 2
 #define LED_BUILTIN 2
 
+// Valores para el tiempo en el que volver a evaluar el estado, 
+// innececesario si aplicamos enconder
+#define T_GIROD 750
+#define T_GIROI 525
+#define T_GIRO180 2000
 
 // --------------- Movidas para la salida pwm --------------
 #define PWM_FREC 5000 //frecuencia de la senal pwm

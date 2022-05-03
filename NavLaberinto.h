@@ -3,6 +3,7 @@
 
 #include "Config.h"
 #include "Motor.h"
+#include "Encoder.h"
 
 #define HORARIO 1
 #define ANTIHORARIO 0
@@ -16,6 +17,8 @@ class NavLaberinto
 
         //Array con los dos motores a controlar
         Motor* MisMotores[2];
+        //Array con los dos encoders 
+        Encoder* MisEncoders[2];
 
         //Pid
         PID::PIDController<float>* myPID ;
@@ -51,6 +54,8 @@ class NavLaberinto
         void giro90(bool);
         void seguirpared();
 
+        void encompute();
+        void 
 
 };
 

@@ -15,6 +15,7 @@ f1 -> Arduino: Verify (compilar)
 #include "Pinout.h"
 #include "Config.h"
 #include "Motor.h"
+#include "Encoder.h"
 #include "NavLaberinto.h"
 #include "Logo.h"
 
@@ -22,13 +23,20 @@ f1 -> Arduino: Verify (compilar)
 
 // VARIABLES
 
-int estado=1; // no sé qué es
+// Maquina de estado para las fases del laberinto
+typedef enum {RUN_MODE_DEFAULT, RUN_MODE_PID, RUN_MODE_GORIGHT, RUN_MODE_GOLEFT, RUN_MODE_GO180, RUN_MODE_GOBACK, RUN_MODE_STOP} runmode_t;
+runmode_t run_mode = RUN_MODE_DEFAULT;
 
-int distanciaF=500;
-int distanciaD=200;
-int distanciaI=200;
+//Variables de la distancia de cada sensor
+int distancias[3];
 int distanciaC;
 int contador = 0; // solo para el inicio
+
+//Variables globales de tiempo
+int tiempo=0;
+int tiempo_obj=0;
+int t_backON=0;
+
 
 //#include "FuncionesDisplay.h"
 
@@ -46,16 +54,20 @@ TofSensors MySensors(1, 2, 3, &pinExtensor);
 Motor Motor_derecho(PIN_MOTOR_D_IN1, PIN_MOTOR_D_IN2, PIN_MOTOR_D_PWM, PWM_CH_D, PWM_FREC, PWM_RES); //Motor derecho
 Motor Motor_izquierdo(PIN_MOTOR_I_IN1, PIN_MOTOR_I_IN2, PIN_MOTOR_I_PWM, PWM_CH_I, PWM_FREC, PWM_RES); //Motor izquierdo
 
+//Objetos para control de posicion (encoders)
+Encoder Encoder_derecho(PIN_ENCODER_D_A, PIN_ENCODER_D_B, float tics_vuelta);
+Encoder Encoder_izquierdo();
+
 // Objeto que maneja los motores
-NavLaberinto misMotores(&Motor_derecho, &Motor_izquierdo);
+NavLaberinto mismotores(&Motor_derecho, &Motor_izquierdo);
 
 // Movidas del multitasking
 TaskHandle_t Task_CORE0; // Nucleo secundario
 TaskHandle_t Task_CORE1; // Nucleo principal
 
 void setup(){
-Wire.setClock(800000);
-    
+
+//    Wire.setClock(800000); //Igual esto es lo que fuerza la velocidad del reloj
 
     // Inicializamos el serial
     Serial.begin(9600);
@@ -78,23 +90,26 @@ Wire.setClock(800000);
     display.println("Configurando Hardware...");
     display.display();
 
+    //Configuro las interrupciones
+    attachInterrupt(digitalPinToInterrupt(PIN_MOTORA_CANALA), handler_encoderA, CHANGE);
+    attachInterrupt(digitalPinToInterrupt(PIN_MOTORB_CANALA), handler_encoderB, CHANGE);
+
+
+    // Se inicializan los pines de los motores
     Motor_derecho.init();
     Motor_izquierdo.init();
-
-    
     // Se inicializan los pines de los tof
     MySensors.init();
-
     // Se inicializa el extensor de pines
     pinExtensor.begin();
-
     // Se cambia la direccion de memoria de los sensores tof y se bootean
     MySensors.setID(TOF_ADRESS_FRONT, TOF_ADRESS_RIGHT, TOF_ADRESS_LEFT);
+    
     display.println(" Listo");
     display.display();
 
-    display.println(" Listo");
-    display.display();
+//    display.println(" Listo"); // Se repite?
+//    display.display();
 
     delay(1000);
     display.clearDisplay();
@@ -140,8 +155,6 @@ void TaskCORE0code(void *pvParameters)
     // AQUÍ PROGRAMO YO
     for (;;)
     {
-
-
         /*
         // solo para entrar en el laberinto
         if(contador == 0){
@@ -150,11 +163,12 @@ void TaskCORE0code(void *pvParameters)
         }
         */
         // leo sensores
-        if(MySensors.getDistance(FRONT)!=-1) distanciaF = MySensors.getDistance(FRONT);
-        if(MySensors.getDistance(RIGHT)!=-1) distanciaD = MySensors.getDistance(RIGHT);
-        if(MySensors.getDistance(LEFT)!=-1) distanciaI = MySensors.getDistance(LEFT);
+        if(MySensors.getDistance(FRONT)!=-1) distancias[FRONT] = MySensors.getDistance(FRONT);
+        if(MySensors.getDistance(RIGHT)!=-1) distancias[RIGHT] = MySensors.getDistance(RIGHT);
+        if(MySensors.getDistance(LEFT)!=-1) distancias[LEFT] = MySensors.getDistance(LEFT);
 
         /*
+        // Imprimo las distancias recibidas de Tof
         Serial.print("DistanciaF:");
         Serial.println(distanciaF);
         Serial.print("DistanciaD:");
@@ -163,69 +177,74 @@ void TaskCORE0code(void *pvParameters)
         Serial.println(distanciaI);
         */
 
+
         // casuística:
+        tiempo=millis(); // variable de tiempo que actualizamos en cada bucle
 
-        // Código preparado para medir el laberinto de la semifinal exclusivamente
-        // para cualquier otra cosa será una porquería
-        
         // Error o callejón sin salida, preocupante
-        if ((distanciaF < 50)||(distanciaD < 50)||(distanciaI < 50)) {
-            misMotores.parar();
-            // Parar();
-            misMotores.retroceder();
-            // Atras();
-        }
-
-        if(estado){  //miro la pared derecha 
-            distanciaC=distanciaD;
-            //Serial.println("Miro a la derecha");
-            //giros
-            // el dia de la tragedia
-            if (distanciaD > 400) {  //hueco a la derecha abandono via
-                //Serial.print("HUECO DERECHA:");
-                //Serial.println(distanciaD);
-                //Debo avanzar y girar a la derecha y avanzar
-                misMotores.avanzar();
-                misMotores.giro90(HORARIO);
-                estado=!estado; // Empiezo a mirar la pared de la izquierda para una referencia mejor
+        if (((distancias[FRONT] < 20)||(distancias[RIGHT] < 20)||(distancias[LEFT] < 20))) {
+            if(tiempo>=t_backON){
+                t_backON=millis()+2000; 
             }
-            // fin del dia de la tragedia
-            else if (distanciaF < 150) {   //cerca de la pared
-                if (distanciaI > 400) misMotores.giro90(ANTIHORARIO); // gira a la izq 
-                else{
-                    misMotores.parar();
-                    // Parar();
-                    misMotores.retroceder();
-                    // Atras();
+            else{
+                // Atras
+                run_mode=RUN_MODE_GOBACK;
+                tiempo_obj=millis()+1000;
+            }
+        }
+        else{
+            t_backON=millis();
+            if(tiempo>=tiempo_obj){
+                if(distancias[RIGHT]>=100){
+                    run_mode=RUN_MODE_GORIGHT;
+                    tiempo_obj=millis()+T_GIROD;
                 }
-            }
-            else misMotores.seguirpared(); //No he detectado ningún obstáculo así que ejecuto PID
-        }
-
-        else if(!estado){  //miro la pared izquierda
-            distanciaC=distanciaI;
-            //Serial.println("Miro a la derecha");
-            //giros
-            if (distanciaI > 400) {  //hueco a la izquierda abandono via
-                //Serial.print("HUECO IZQUIERDA:");
-                //Serial.println(distanciaI);
-                //Debo avanzar y girar a la izquierda y avanzar
-                misMotores.avanzar();
-                misMotores.giro90(ANTIHORARIO);
-                estado=!estado; // Vuelvo a mirar a la derecha
-            } 
-            else if (distanciaF < 150) {  //cerca de la pared
-                if (distanciaD > 400) misMotores.giro90(HORARIO); // Derecha();
-                else{
-                    misMotores.parar();
-                    // Parar();
-                    misMotores.retroceder();
-                    // Atras();
+                else if ((distancias[FRONT] <= 40) && (distancias[FRONT] >= 20) && (distancias[LEFT] >= 100)){
+                    run_mode=RUN_MODE_GOLEFT;
+                    tiempo_obj=millis()+T_GIROI;
                 }
+                else if (distancias[LEFT] <=100 && (distancias[RIGHT] <= 100) && (distancias[FRONT] <= 40)) {
+                    run_mode=RUN_MODE_GO180;
+                    tiempo_obj=millis()+T_GIRO180;
+                }
+                else{
+                    run_mode=RUN_MODE_PID;
+                    tiempo_obj=millis();
+                }
+
             }
-            else misMotores.seguirpared(); //No he detectado ningún obstáculo así que ejecuto PID
         }
 
+        switch (run_mode) {
+            case RUN_MODE_DEFAULT:
+                mismotores.parar();
+
+            break;
+            case RUN_MODE_PID:
+                mismotores.seguirpared();
+
+            break;
+            case RUN_MODE_GORIGHT:
+                mismotores.giro90(ANTIHORARIO);
+        
+            break;
+            case RUN_MODE_GOLEFT:
+                mismotores.giro90(HORARIO);
+
+            break;
+            case RUN_MODE_GO180:
+                mismotores.girar(ANTIHORARIO);
+    
+            break;
+            case RUN_MODE_GOBACK:
+                mismotores.retroceder();
+    
+            break;
+            case RUN_MODE_STOP:
+                mismotores.parar();
+    
+            break;
+        }
     }
 }
 
@@ -238,7 +257,7 @@ void TaskCORE1code(void *pvParameters)
     for (;;)
     {
         //displayThings();
-        misMotores.compute(distanciaC);
+        mismotores.compute(distancias[RIGHT]);
         vTaskDelay(10 / portTICK_PERIOD_MS);
     }
 }
@@ -247,4 +266,13 @@ void TaskCORE1code(void *pvParameters)
 void loop(void)
 {
    
+}
+
+void handler_encoderA()
+{
+  myPullup.getEncoder(A).actualizar_posicion();  
+}
+void handler_encoderB()
+{
+  myPullup.getEncoder(B).actualizar_posicion();
 }

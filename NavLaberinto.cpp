@@ -114,7 +114,11 @@ void NavLaberinto::compute(int ndistancia)
     distancia = ndistancia;
     myPID->Input = (distancia - distanciaOPT);
     myPID->Update();
-    output = myPID->Output;
+    output = myPID->Output; 
+}
+
+void NavLaberinto::encompute()
+{
     
 }
 
